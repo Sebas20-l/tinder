@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mini Tinder con perfil propio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { background:#f5f5f5; display:flex; justify-content:center; padding:20px; }
+    .app { width: 360px; background:white; padding:20px; border-radius:15px; box-shadow:0 0 15px #0002; }
+    h2, h3 { text-align:center; margin-bottom:10px; }
+    .card img { width:100%; height:250px; object-fit:cover; border-radius:10px; }
+    .name-age { font-size:20px; font-weight:bold; margin-top:8px; }
+    .bio { font-size:14px; color:#444; margin-top:5px; }
+    .buttons { display:flex; justify-content:space-between; margin-top:15px; }
+    .buttons button { padding:10px 20px; border:none; border-radius:8px; font-size:20px; cursor:pointer; }
+    .btn-like { background:#4CAF50; color:white; }
+    .btn-dislike { background:#f44336; color:white; }
+    input, textarea { width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:8px; }
+    .form-section { margin-top:20px; padding-top:10px; border-top:1px solid #ddd; }
+    .btn-create { margin-top:10px; background:#008CFF; color:white; padding:10px; border:none; border-radius:8px; cursor:pointer; width:100%; }
+    #status, #createStatus { font-size:13px; color:#555; margin-top:8px; text-align:center;}
+    .disabled-msg { font-size:12px; color:#a33; text-align:center; margin-top:5px; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <h2>Mini Tinder</h2>
+
+  <!-- Zona de tarjeta -->
+  <div id="card-container" style="text-align:center;">
+    <p>Primero crea tu perfil para ver otros usuarios 💕</p>
+  </div>
+
+  <div class="buttons">
+    <button class="btn-dislike" id="btnDislike" disabled>👎</button>
+    <button class="btn-like" id="btnLike" disabled>👍</button>
+  </div>
+  <p class="disabled-msg" id="browseMsg">
+    Los botones se activan cuando hayas creado tu perfil.
+  </p>
+
+  <p id="status"></p>
+
+  <!-- Formulario para crear tu perfil -->
+  <div class="form-section">
+    <h3>Crear mi perfil 🩷</h3>
+
+    <label>Nombre *</label>
+    <input type="text" id="name">
+
+    <label>Edad</label>
+    <input type="number" id="age">
+
+    <label>Bio</label>
+    <textarea id="bio" placeholder="Cuenta algo sobre ti..."></textarea>
+
+    <label>URL de tu foto</label>
+    <input type="text" id="image" placeholder="https://...">
+
+    <button class="btn-create" id="btnCreate">Guardar mi perfil</button>
+    <p id="createStatus"></p>
+  </div>
+</div>
+
+<script>
+  const cardCont = document.getElementById("card-container");
+  const status = document.getElementById("status");
+  const btnLike = document.getElementById("btnLike");
+  const btnDislike = document.getElementById("btnDislike");
+  const browseMsg = document.getElementById("browseMsg");
+
+  const nameInput = document.getElementById("name");
+  const ageInput = document.getElementById("age");
+  const bioInput = document.getElementById("bio");
+  const imageInput = document.getElementById("image");
+  const btnCreate = document.getElementById("btnCreate");
+  const createStatus = document.getElementById("createStatus");
+
+  let currentUserId = null;
+  let offset = 0; // para avanzar en la lista de otros usuarios
+
+  function enableBrowsing() {
+    btnLike.disabled = false;
+    btnDislike.disabled = false;
+    browseMsg.textContent = "Ahora puedes ver otros perfiles 🎉";
+  }
+
+  async function loadProfile() {
+    if (!currentUserId) {
+      cardCont.innerHTML = "<p>Primero crea tu perfil para ver otros usuarios 💕</p>";
+      return;
+    }
+
+    status.textContent = "";
+
+    try {
+      const res = await fetch(`/api/next-profile?excludeId=${currentUserId}&offset=${offset}`);
+      const data = await res.json();
+
+      if (data.done) {
+        cardCont.innerHTML = `<p>${data.message}</p>`;
+        return;
+      }
+
+      const p = data.profile;
+      cardCont.innerHTML = `
+        <div class="card">
+          <img src="${p.image || 'https://placekitten.com/400/300'}" alt="Foto de ${p.name}">
+          <div class="name-age">${p.name}, ${p.age || "?"}</div>
+          <div class="bio">${p.bio || ""}</div>
+        </div>
+      `;
+    } catch (err) {
+      console.error(err);
+      status.textContent = "Error cargando perfil.";
+    }
+  }
+
+  btnLike.onclick = async () => {
+    if (!currentUserId) return;
+    try {
+      await fetch("/api/like", { method: "POST" });
+      status.textContent = "Like 💚";
+      offset++;
+      loadProfile();
+    } catch (err) {
+      console.error(err);
+      status.textContent = "Error enviando like.";
+    }
+  };
+
+  btnDislike.onclick = async () => {
+    if (!currentUserId) return;
+    try {
+      await fetch("/api/dislike", { method: "POST" });
+      status.textContent = "Dislike ❌";
+      offset++;
+      loadProfile();
+    } catch (err) {
+      console.error(err);
+      status.textContent = "Error enviando dislike.";
+    }
+  };
+
+  // Crear perfil
+  btnCreate.onclick = async () => {
+    createStatus.textContent = "";
+    const name = nameInput.value.trim();
+    const age = ageInput.value;
+    const bio = bioInput.value;
+    const image = imageInput.value;
+
+    if (!name) {
+      createStatus.textContent = "El nombre es obligatorio.";
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/create-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, age, bio, image })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        createStatus.textContent = data.message || "Error creando el perfil.";
+        return;
+      }
+
+      createStatus.textContent = data.message;
+
+      // Guardar id del usuario y permitir ver otros
+      currentUserId = data.id;
+      localStorage.setItem("currentUserId", currentUserId.toString());
+
+      offset = 0;   // empezar desde el inicio
+      enableBrowsing();
+      loadProfile();
+    } catch (err) {
+      console.error(err);
+      createStatus.textContent = "Error de conexión al crear el perfil.";
+    }
+  };
+
+  // Si ya había un perfil guardado en localStorage, reanudar
+  (function loadUserFromStorage() {
+    const savedId = localStorage.getItem("currentUserId");
+    if (savedId) {
+      currentUserId = parseInt(savedId, 10);
+      enableBrowsing();
+      loadProfile();
+    }
+  })();
+</script>
+
+</body>
+</html>
