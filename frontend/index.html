@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tinder App Simple</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>🔥 Mini Tinder App</h1>
+      <div id="user-info">
+        <span id="user-email"></span>
+        <button id="btn-logout" class="hidden">Cerrar sesión</button>
+      </div>
+    </header>
+
+    <!-- Auth -->
+    <section id="auth-section">
+      <div class="card">
+        <h2>Registro</h2>
+        <label>Email</label>
+        <input type="email" id="reg-email" />
+        <label>Contraseña</label>
+        <input type="password" id="reg-password" />
+        <label>Nombre para mostrar</label>
+        <input type="text" id="reg-display-name" />
+        <label>Edad</label>
+        <input type="number" id="reg-age" />
+        <button id="btn-register">Crear cuenta</button>
+      </div>
+
+      <div class="card">
+        <h2>Login</h2>
+        <label>Email</label>
+        <input type="email" id="login-email" />
+        <label>Contraseña</label>
+        <input type="password" id="login-password" />
+        <button id="btn-login">Entrar</button>
+      </div>
+
+      <div id="auth-message" class="message"></div>
+    </section>
+
+    <!-- Main app -->
+    <section id="main-section" class="hidden">
+      <div class="columns">
+
+        <!-- Columna Izquierda: Perfil -->
+        <div class="column">
+          <div class="card">
+            <h2>Mi perfil</h2>
+            <div id="my-profile-view"></div>
+
+            <h3>Editar perfil</h3>
+            <label>Nombre</label>
+            <input type="text" id="prof-display-name" />
+            <label>Descripción</label>
+            <textarea id="prof-short-bio"></textarea>
+            <label>Edad</label>
+            <input type="number" id="prof-age" />
+            <label>Género (M/F/NB)</label>
+            <input type="text" id="prof-gender" />
+            <label>Distancia máx (km)</label>
+            <input type="number" id="prof-distance" />
+            <label>Edad mínima preferida</label>
+            <input type="number" id="prof-min-age" />
+            <label>Edad máxima preferida</label>
+            <input type="number" id="prof-max-age" />
+            <label>Género que te interesa</label>
+            <input type="text" id="prof-interested-gender" />
+            <label>Intereses (coma , separa)</label>
+            <input type="text" id="prof-interests" />
+            <label>Música</label>
+            <input type="text" id="prof-music" />
+            <label>Idiomas</label>
+            <input type="text" id="prof-languages" />
+            <label>Latitud (opcional)</label>
+            <input type="number" step="0.000001" id="prof-lat" />
+            <label>Longitud (opcional)</label>
+            <input type="number" step="0.000001" id="prof-lng" />
+
+            <button id="btn-save-profile">Guardar perfil</button>
+          </div>
+
+          <div class="card">
+            <h3>Fotos (URL)</h3>
+            <label>URL de imagen</label>
+            <input type="text" id="photo-url" />
+            <button id="btn-add-photo">Agregar foto</button>
+            <div id="my-photos"></div>
+          </div>
+        </div>
+
+        <!-- Columna Central: Swipe -->
+        <div class="column">
+          <div class="card">
+            <h2>Descubrir personas</h2>
+            <div id="swipe-profile">
+              <!-- Aquí se muestra el perfil actual para swipe -->
+            </div>
+            <div class="swipe-buttons">
+              <button id="btn-swipe-left">🙅‍♀️ No</button>
+              <button id="btn-swipe-super">⭐ Super Like</button>
+              <button id="btn-swipe-right">💘 Me gusta</button>
+            </div>
+            <button id="btn-next-profile">Siguiente perfil</button>
+          </div>
+        </div>
+
+        <!-- Columna Derecha: Matches & Chat -->
+        <div class="column">
+          <div class="card">
+            <h2>Matches</h2>
+            <ul id="matches-list"></ul>
+          </div>
+
+          <div class="card">
+            <h2>Chat</h2>
+            <div id="chat-header">Selecciona un match</div>
+            <div id="chat-messages"></div>
+            <div id="chat-input-area" class="hidden">
+              <input type="text" id="chat-input" placeholder="Escribe un mensaje..." />
+              <button id="btn-send-chat">Enviar</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <!-- Socket.io cliente (lo sirve el backend en /socket.io/socket.io.js) -->
+  <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
